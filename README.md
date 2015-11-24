@@ -23,10 +23,10 @@ First Time Setup
 * Take note of your API key.
 
 
-Installing
-----------
+Installing and Updating
+-----------------------
 
-Installation must be done manually, as this is only the initial version.
+Installation and Updating must be done manually for now.
 
 0. Place the weather.py on a host of your choice where the zabbix agent can execute it
 The default location is `/etc/zabbix/scripts`
