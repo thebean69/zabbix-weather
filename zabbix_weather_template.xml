@@ -364,9 +364,6 @@
                             <name>Weather</name>
                         </application>
                     </applications>
-                    <valuemap>
-                        <name>Pressure Trends</name>
-                    </valuemap>
                     <logtimefmt/>
                 </item>
                 <item>
@@ -810,7 +807,7 @@
         <trigger>
             <expression>{weather:cw_desc.str(Snow)}=1</expression>
             <name>Snow</name>
-            <url>http://www.wunderground.com/cgi-bin/findweather/getForecast?query=Fort+Collins%2C+CO&amp;MR=1</url>
+            <url>http://www.wunderground.com/cgi-bin/findweather/getForecast?query=Fort+Collins%2C+CO</url>
             <status>0</status>
             <priority>5</priority>
             <description>Triggers if weather condition is snowing</description>
@@ -818,7 +815,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{weather:cw_desc.nodata(1200)}=1 and {TRIGGER.VALUE}=0</expression>
+            <expression>{weather:cw_desc.nodata(1200)}=1</expression>
             <name>Weather data not updated in last 20 min</name>
             <url/>
             <status>0</status>
