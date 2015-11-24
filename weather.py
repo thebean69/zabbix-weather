@@ -4,20 +4,20 @@
 # Grab current weather conditions and load them into Zabbix
 # Must run only every 3 min MAX to avoid running into the API limit of 500 free hits per day on weather underground.
 
-# required libraries
 import os, sys, urllib2, json, subprocess
+from tempfile import mkstemp
 
-# grab the JSON blob
-u = urllib2.urlopen('http://api.wunderground.com/api/<API_KEY>/conditions/q/CO/Fort_Collins.json')
-#u = open('/tmp/weather.json', 'r')
+# Set these variables
+api_key = 'API_KEY'
+zabbix_server = 'ZABBIX_SERVER'
+zabbix_hostname = 'ZABBIX_HOSTNAME'
 
-#print "DEBUG: Reading JSON.."
-json_string = u.read()
 
-#print "DEBUG: Parsing JSON.."
+f = urllib2.urlopen('http://api.wunderground.com/api/{}/conditions/q/CO/Fort_Collins.json'.format(api_key))
+json_string = f.read()
+f.close()
 parsed_json = json.loads(json_string)
 
-#print "DEBUG: Extracting values..."
 cw_city = parsed_json['current_observation']['observation_location']['city']
 cw_time = parsed_json['current_observation']['observation_time_rfc822']
 cw_tempf = parsed_json['current_observation']['temp_f']
@@ -31,15 +31,16 @@ cw_wmphg = parsed_json['current_observation']['wind_gust_mph']
 cw_pin = parsed_json['current_observation']['pressure_in']
 cw_ptrend = parsed_json['current_observation']['pressure_trend']
 cw_wcf = parsed_json['current_observation']['windchill_f']
+cw_wcf = cw_wcf.replace("NA","0.0")
 cw_wcc = parsed_json['current_observation']['windchill_c']
+cw_wcc = cw_wcc.replace("NA","0.0")
 cw_vism = parsed_json['current_observation']['visibility_mi']
 cw_p1in= parsed_json['current_observation']['precip_1hr_in']
 cw_pdin = parsed_json['current_observation']['precip_today_in']
 
-# File is formatted for zabbix trapper values
-#print "DEBUG: Writing file.."
-f = open('/tmp/zbx_weather', 'w')
-
+# File is formatted for zabbix trapper values with no timestamps
+fd, temp_file = mkstemp()
+f = open(temp_file, 'w')
 f.write("- cw_city %s\n" % (cw_city))
 f.write("- cw_time %s\n" % (cw_time))
 f.write("- cw_tempf %s\n" % (cw_tempf))
@@ -57,25 +58,22 @@ f.write("- cw_wcc %s\n" % (cw_wcc))
 f.write("- cw_vism %s\n" % (cw_vism))
 f.write("- cw_p1in %s\n" % (cw_p1in))
 f.write("- cw_pdin %s\n" % (cw_pdin))
-
 f.close()
-u.close()
+os.close(fd)
 
-print "\n\nCurrent Conditions:"
-print "Observed at: %s" % (cw_time)
-print "Location: %s" % (cw_city)
-print "Weather: %s" % (cw_desc)
-print "Temp: %s°F (%s°C)" % (cw_tempf, cw_tempc)
-print "Humidity: %s" % (cw_humid)
-print "Pressure: %s inHg %s" % (cw_pin, cw_ptrend)
-print "Visibility: %s mi" % (cw_vism)
-print "Precipitation: %s in last hour, %s in today" % (cw_p1in, cw_pdin)
+print "Current Conditions:"
+print "Observed at: {}".format(cw_time)
+print "Location: {}".format(cw_city)
+print "Weather: {}".format(cw_desc)
+print "Temp: {}°F ({}°C)".format(cw_tempf, cw_tempc)
+print "Humidity: {}".format(cw_humid)
+print "Pressure: {}in {}".format(cw_pin, cw_ptrend)
+print "Visibility: {}mi".format(cw_vism)
+print "Precipitation: {}in last hour, {}in today".format(cw_p1in, cw_pdin)
+print "Wind: From the {} ({}°) at {}mph, gusting to {}mph".format(cw_wdir, cw_wdeg, cw_wmph, cw_wmphg)
+print "Wind Chill: {}°F ({}°C)".format(cw_wcf, cw_wcc)
 
-print "\n\nSending values to zabbix..."
-subprocess.call(['zabbix_sender', '-z', '<ZABBIX_SERVER>', '-s', '<ZABBIX_HOST>', '-i', '/tmp/zbx_weather'])
+print "\nSending values to zabbix..."
+subprocess.call(['zabbix_sender', '-z', zabbix_server, '-s', zabbix_hostname, '-i', temp_file])
 
-#print "DEBUG: deleting temp file.."
-os.remove('/tmp/zbx_weather')
-
-#print "DEBUG: Ending weather script.\n"
-
+os.remove(temp_file)
