@@ -1,7 +1,6 @@
 zabbix-weather
 ==============
 
-
 A script and zabbix template to track weather data pulled from weather underground
 
 
@@ -44,13 +43,11 @@ zabbix_hostname = 'ZABBIX_HOST'
 API_KEY        Replace with your actual weather underground API key
 ZABBIX_SERVER  Hostname or IP of your zabbix server
 ZABBIX_HOST    Zabbix Host name of the host with the weather script installed
+LOCATION       The location to collect weather data for.
 ```
+0. The location must be something that weather underground supports.  Examples include cities in State/City form such as `AK/Talkeetna`, or actual weather station IDs such as `zmw:00000.1.71123`.  Some foreign cities are supported as well, such as `/Canada/Ontario/Atikokan`. For larger cities with many stations, it is best to use the station ID closest to your location.
 
-0. Python2 is required and is expected to be installed at `/usr/bin/python2`. Modify the first line of the script if  your python2 is named just python or resides in a different path.
-
-0. If desired, the location can be changed. It is set up to query weather from Fort Collins, CO
-To change, replace the `/CO/Fort_Collins.json` in the URL with the URL for your city.
-The name must be one that the weather underground supports.
+0. Python2 is required and is expected to be installed at `/usr/bin/python2`. Modify the first line of the script if your python2 is named just python or resides in a different path.
 
 0. Run the script from the command line to ensure that it works properly.  An example of a successful run is below
 ```
@@ -71,7 +68,7 @@ info from server: "processed: 17; failed: 0; total: 17; seconds spent: 0.000182"
 sent: 17; skipped: 0; total: 17
 ```
 
-0. Import the weather template into Zabbix `Configuration -> Templates -> Import`. This template only includes Applications, Items, Triggers and Graphs
+0. Import the weather template into Zabbix `Configuration -> Templates -> Import`. This template only includes Applications, Items, Triggers and Graphs.  If you are using Zabbix 2.2, use template `zabbix_weather_template_zbx2.2.xml`, if you are using Zabbix 2.4, use template `zabbix_weather_template.xml`.  The templates have not been tested with other Zabbix versions.
 
 0. Add a host to be in the template.  This should be the same host as the script is installed.
 
