@@ -32,47 +32,66 @@ The default location is `/etc/zabbix/scripts`
 
 0. Make it executable `chmod +x /etc/zabbix/scripts/weather.py`
 
-0. Open the script in an editor and change the following items:
+0. Place the default config file `weather.cfg` in the same directory as the script `/etc/zabbix/scripts`
+
+0. Open the config file and replace the default options with your own values. The following values must be changed:
 
 ```
-# Set these variables
-api_key = 'API_KEY'
-zabbix_server = 'ZABBIX_SERVER'
-zabbix_hostname = 'ZABBIX_HOST'
-
-API_KEY        Replace with your actual weather underground API key
-ZABBIX_SERVER  Hostname or IP of your zabbix server
-ZABBIX_HOST    Zabbix Host name of the host with the weather script installed
-LOCATION       The location to collect weather data for.
+api_key = <API_KEY>
+zabbix_server = <ZABBIX_SERVER>
+zabbix_hostname = <ZABBIX_HOSTNAME>
 ```
-0. The location must be something that weather underground supports.  Examples include cities in State/City form such as `AK/Talkeetna`, or actual weather station IDs such as `zmw:00000.1.71123`.  Some foreign cities are supported as well, such as `/Canada/Ontario/Atikokan`. For larger cities with many stations, it is best to use the station ID closest to your location.
+For example, replace `<API_KEY>` with your actual API key, such as `cd164d6297962648`.
+
+Config file description:
+```
+api_key = weather underground API key
+location = The location to collect weather data for.
+zabbix_server =  Hostname or IP of your zabbix server
+zabbix_hostname = Zabbix Host name of the host with the weather script installed
+zabbix_sender = Complete filename and path of the zabbix_sender program
+```
+
+0. The location must be something that weather underground supports.  Examples include cities in State/City form such as `AK/Talkeetna`, or actual weather station IDs such as `zmw:00000.1.71123`.  Some foreign cities are supported as well, such as `Canada/Ontario/Atikokan`. For larger cities with many stations, it is best to use the station ID closest to your location.
+
+0. Change the `zabbix_sender` option if the zabbix_sender program is not in your path.  For example, change it to `/opt/zabbix/bin/zabbix_sender` if the zabbix_sender binary is installed at `/opt/zabbix/bin`
 
 0. Python2 is required and is expected to be installed at `/usr/bin/python2`. Modify the first line of the script if your python2 is named just python or resides in a different path.
 
 0. Run the script from the command line to ensure that it works properly.  An example of a successful run is below
 ```
+Using config file: /etc/zabbix/scripts/weather.cfg
+Read these settings from config file:
+api_key: cd47c13676331651
+location: CO/Fort_Collins
+zabbix_server: 127.0.0.1
+zabbix_hostname: thebean-media
+zabbix_sender: zabbix_sender
+
 Current Conditions:
-Observed at: Mon, 23 Nov 2015 15:40:12 -0700
+Observed at: Wed, 25 Nov 2015 18:16:54 -0700
 Location: Hanna Farm, Fort Collins
-Weather: Clear
-Temp: 56.5°F (13.6°C)
-Humidity: 28%
-Pressure: 29.96in +
-Visibility: 10.0 mi
+Weather: Overcast
+Temp: 27.9°F (-2.3°C)
+Humidity: 90%
+Pressure: 30.02in +
+Visibility: 10.0mi
 Precipitation: 0.00in last hour, 0.00in today
-Wind: From the WSW (247°) at 2.2mph, gusting to 6.3mph
-Wind Chill: 0.0°F (0.0°C)
+Wind: From the WNW (292°) at 2.7mph, gusting to 5.8mph
+Wind Chill: 28°F (-2°C)
 
 Sending values to zabbix...
-info from server: "processed: 17; failed: 0; total: 17; seconds spent: 0.000182"
+info from server: "processed: 17; failed: 0; total: 17; seconds spent: 0.000180"
 sent: 17; skipped: 0; total: 17
 ```
 
 0. Import the weather template into Zabbix `Configuration -> Templates -> Import`. This template only includes Applications, Items, Triggers and Graphs.  If you are using Zabbix 2.2, use template `zabbix_weather_template_zbx2.2.xml`, if you are using Zabbix 2.4, use template `zabbix_weather_template.xml`.  The templates have not been tested with other Zabbix versions.
 
-0. Add a host to be in the template.  This should be the same host as the script is installed.
+0. Add a host to be in the template.  This should be the same host as where the script is installed.
 
-0. Look at the host's latest data.  It should be populated with weather data in a few minutes.
+0. Modify the Item `Collect weather data` with the full path of the script if it is installed to a different directory.  In the Zabbix web front end, go to `Configuration -> Templates -> Weather -> Items`. Modify the `Key` field to match your path.  Defult is: `system.run[/etc/zabbix/scripts/weather.py,wait]`
 
-Any errors from the script will be in the latest data of the "Collect Weather Data" item.
+0. Look at the host's `latest data` in the Zabbix front end.  Go to `Monitoring -> Latest Data`.  It should be populated with weather data in a few minutes.  The values will appear under a heading called `Weather`.
+
+0. Any errors from the script will be in the latest data of the `Collect weather data` item.
 
